@@ -1,79 +1,133 @@
-This is a new [**React Native**](https://reactnative.dev) project, bootstrapped using [`@react-native-community/cli`](https://github.com/react-native-community/cli).
+# 🎙️ VoiceGram - React Native
 
-# Getting Started
+Voice-to-Text Telegram app with personal account integration using React Native 0.72.12.
 
->**Note**: Make sure you have completed the [React Native - Environment Setup](https://reactnative.dev/docs/environment-setup) instructions till "Creating a new application" step, before proceeding.
+## 📱 Latest APK Download
 
-## Step 1: Start the Metro Server
+**🔗 [Download Latest APK](https://github.com/yoni12ab/VoiceGram-RN/releases/download/v1.0.2-bccbf47/VoiceGram-v1.0.2-bccbf47-debug.apk)**
 
-First, you will need to start **Metro**, the JavaScript _bundler_ that ships _with_ React Native.
+**Version:** v1.0.2-bccbf47 | **Platform:** Android (Debug) | **Status:** ✅ Ready to Install
 
-To start Metro, run the following command from the _root_ of your React Native project:
+### 🚀 Installation Instructions
+1. Click the download link above
+2. Enable "Install from unknown sources" on your Android device
+3. Open the APK file to install VoiceGram
+4. Grant permissions when prompted
+
+---
+
+## 🎯 Project Overview
+
+VoiceGram is a React Native application that enables voice-to-text communication through Telegram personal account integration. The app uses free libraries without requiring AI tokens or paid services.
+
+### ✨ Key Features
+- 🎙️ Voice recording with free libraries
+- 🗣️ Speech-to-text conversion without AI tokens  
+- 📱 Personal Telegram account integration (not bot API)
+- 🚀 No recurring costs or paid APIs
+- 📲 Android 11+ support
+
+### 🛠️ Technology Stack
+- **React Native:** 0.72.12 (Fixed Metro file watching issues)
+- **Android SDK:** 30-34 (Android 11-14)
+- **Target SDK:** 34 (Android 14)
+- **Build System:** Gradle 8.0.1
+- **Java:** JDK 17
+
+### 📦 Planned Libraries
+- `react-native-tdlib` - Personal Telegram account integration
+- `react-native-audio-recorder-player` - Voice recording
+- `react-native-voice` - Speech-to-text conversion
+
+---
+
+## 🔧 Development Setup
+
+### Prerequisites
+- Node.js 18+
+- Java JDK 17
+- Android SDK with Android 11+ platform
+- Android Studio with SDK tools
+
+### Installation
 
 ```bash
-# using npm
+# Clone the repository
+git clone https://github.com/yoni12ab/VoiceGram-RN.git
+cd VoiceGram-RN
+
+# Install dependencies
+npm install
+
+# Start Metro bundler
 npm start
 
-# OR using Yarn
-yarn start
-```
-
-## Step 2: Start your Application
-
-Let Metro Bundler run in its _own_ terminal. Open a _new_ terminal from the _root_ of your React Native project. Run the following command to start your _Android_ or _iOS_ app:
-
-### For Android
-
-```bash
-# using npm
+# Run on Android
 npm run android
 
-# OR using Yarn
-yarn android
+# Run on iOS (macOS only)
+npm run ios
 ```
 
-### For iOS
+---
+
+## 📦 Building APK Locally
 
 ```bash
-# using npm
-npm run ios
+# Build debug APK
+cd android
+./gradlew assembleDebug
 
-# OR using Yarn
-yarn ios
+# APK location: android/app/build/outputs/apk/debug/app-debug.apk
+
+# Build release APK (requires signing configuration)
+./gradlew assembleRelease
 ```
 
-If everything is set up _correctly_, you should see your new app running in your _Android Emulator_ or _iOS Simulator_ shortly provided you have set up your emulator/simulator correctly.
+---
 
-This is one way to run your app — you can also run it directly from within Android Studio and Xcode respectively.
+## 🔄 CI/CD
 
-## Step 3: Modifying your App
+The project uses GitHub Actions for automated APK generation on every push to the main branch. 
 
-Now that you have successfully run the app, let's modify it.
+- **Workflow:** `.github/workflows/android-build.yml`
+- **Triggers:** Push to main branch, pull requests, manual workflow dispatch
+- **Artifacts:** Debug and Release APKs uploaded to GitHub releases
+- **Build Status:** ✅ Currently working
 
-1. Open `App.tsx` in your text editor of choice and edit some lines.
-2. For **Android**: Press the <kbd>R</kbd> key twice or select **"Reload"** from the **Developer Menu** (<kbd>Ctrl</kbd> + <kbd>M</kbd> (on Window and Linux) or <kbd>Cmd ⌘</kbd> + <kbd>M</kbd> (on macOS)) to see your changes!
+---
 
-   For **iOS**: Hit <kbd>Cmd ⌘</kbd> + <kbd>R</kbd> in your iOS Simulator to reload the app and see your changes!
+## 📋 Build Information
 
-## Congratulations! :tada:
+### Latest Build (v1.0.2-bccbf47)
+- **Build Number:** 2
+- **Commit:** bccbf474fdd9c53fafaf0980e09033d7d5036de3
+- **Build Time:** 4m 15s
+- **Triggered by:** Automated CI/CD
+- **Workflow:** [View Build Run](https://github.com/yoni12ab/VoiceGram-RN/actions/runs/30025175576)
 
-You've successfully run and modified your React Native App. :partying_face:
+---
 
-### Now what?
+## 🐛 Troubleshooting
 
-- If you want to add this new React Native code to an existing application, check out the [Integration guide](https://reactnative.dev/docs/integration-with-existing-apps).
-- If you're curious to learn more about React Native, check out the [Introduction to React Native](https://reactnative.dev/docs/getting-started).
+### Metro File Watching Issues
+This project uses React Native 0.72.12 to avoid Metro file watching issues found in newer versions. If you encounter Metro issues, ensure you're using the specified version.
 
-# Troubleshooting
+### Build Failures
+- Ensure Java JDK 17 is set as JAVA_HOME
+- Verify Android SDK 30-34 is installed
+- Check that gradlew has execute permissions: `chmod +x android/gradlew`
 
-If you can't get this to work, see the [Troubleshooting](https://reactnative.dev/docs/troubleshooting) page.
+---
 
-# Learn More
+## 📄 License
 
-To learn more about React Native, take a look at the following resources:
+This project is open source and available under the MIT License.
 
-- [React Native Website](https://reactnative.dev) - learn more about React Native.
-- [Getting Started](https://reactnative.dev/docs/environment-setup) - an **overview** of React Native and how setup your environment.
-- [Learn the Basics](https://reactnative.dev/docs/getting-started) - a **guided tour** of the React Native **basics**.
-- [Blog](https://reactnative.dev/blog) - read the latest official React Native **Blog** posts.
-- [`@facebook/react-native`](https://github.com/facebook/react-native) - the Open Source; GitHub **repository** for React Native.
+## 🤝 Contributing
+
+Contributions are welcome! Please feel free to submit pull requests or open issues.
+
+---
+
+**Built with ❤️ using React Native and GitHub Actions**
