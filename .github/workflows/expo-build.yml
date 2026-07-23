@@ -1,0 +1,96 @@
+name: Expo Build
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'npm'
+
+    - name: Setup EAS
+      uses: expo/expo-github-action@v8
+      with:
+        eas-version: latest
+        token: ${{ secrets.EXPO_TOKEN }}
+
+    - name: Install dependencies
+      run: npm install
+
+    - name: Generate Version Number
+      id: version
+      run: |
+        if [ "${{ github.event_name }}" == "pull_request" ]; then
+          echo "version=pr-${{ github.event.pull_request.number }}" >> $GITHUB_OUTPUT
+          echo "is_pr=true" >> $GITHUB_OUTPUT
+        else
+          BUILD_NUMBER=${{ github.run_number }}
+          COMMIT_SHA=$(git rev-parse --short HEAD)
+          echo "version=v1.0.${BUILD_NUMBER}-${COMMIT_SHA}" >> $GITHUB_OUTPUT
+          echo "is_pr=false" >> $GITHUB_OUTPUT
+        fi
+
+    - name: Export web bundle
+      run: npx expo export --platform web
+
+    - name: Export iOS bundle
+      run: npx expo export --platform ios
+
+    - name: Export Android bundle
+      run: npx expo export --platform android
+
+    - name: Upload build artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: VoiceGram-expo-bundles-${{ steps.version.outputs.version }}
+        path: dist
+
+    - name: Create GitHub Release
+      if: steps.version.outputs.is_pr == 'false'
+      uses: softprops/action-gh-release@v1
+      with:
+        tag_name: ${{ steps.version.outputs.version }}
+        name: VoiceGram Expo ${{ steps.version.outputs.version }}
+        body: |
+          ## VoiceGram Expo ${{ steps.version.outputs.version }}
+          
+          ### 📱 Download Bundles
+          
+          **Build Artifacts:** [VoiceGram-expo-bundles-${{ steps.version.outputs.version }}](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})
+          
+          ---
+          
+          ### 📋 Build Information
+          - **Build Number:** ${{ github.run_number }}
+          - **Commit:** ${{ github.sha }}
+          - **Triggered by:** ${{ github.actor }}
+          - **Workflow:** [View Run](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})
+          
+          ### 🚀 Project Details
+          - **Expo SDK:** 57.0.8
+          - **React Native:** 0.86.0
+          - **Platforms:** iOS, Android, Web
+          
+          _Built with ❤️ using Expo and GitHub Actions_
+        draft: false
+        prerelease: true
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
