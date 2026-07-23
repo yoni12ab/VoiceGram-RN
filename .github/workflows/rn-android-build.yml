@@ -1,0 +1,132 @@
+name: React Native Android Build
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'npm'
+
+    - name: Setup JDK 17
+      uses: actions/setup-java@v4
+      with:
+        java-version: '17'
+        distribution: 'temurin'
+
+    - name: Setup Android SDK
+      uses: android-actions/setup-android@v3
+
+    - name: Grant execute permission for gradlew
+      run: cd android && chmod +x gradlew
+      continue-on-error: true
+
+    - name: Cache node modules
+      uses: actions/cache@v4
+      with:
+        path: |
+          node_modules
+          ~/.npm
+        key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+        restore-keys: |
+          ${{ runner.os }}-node-
+
+    - name: Install dependencies
+      run: npm install
+
+    - name: Generate Version Number
+      id: version
+      run: |
+        if [ "${{ github.event_name }}" == "pull_request" ]; then
+          echo "version=pr-${{ github.event.pull_request.number }}" >> $GITHUB_OUTPUT
+          echo "is_pr=true" >> $GITHUB_OUTPUT
+        else
+          BUILD_NUMBER=${{ github.run_number }}
+          COMMIT_SHA=$(git rev-parse --short HEAD)
+          echo "version=v1.0.${BUILD_NUMBER}-${COMMIT_SHA}" >> $GITHUB_OUTPUT
+          echo "is_pr=false" >> $GITHUB_OUTPUT
+        fi
+
+    - name: Build Debug APK
+      run: cd android && ./gradlew assembleDebug
+
+    - name: Build Release APK
+      run: cd android && ./gradlew assembleRelease || echo "Release build failed - keystore not configured"
+      continue-on-error: true
+
+    - name: Rename APKs with Version
+      run: |
+        cd android
+        mv app/build/outputs/apk/debug/app-debug.apk app/build/outputs/apk/debug/VoiceGram-${{ steps.version.outputs.version }}-debug.apk
+        if [ -f "app/build/outputs/apk/release/app-release.apk" ]; then
+          mv app/build/outputs/apk/release/app-release.apk app/build/outputs/apk/release/VoiceGram-${{ steps.version.outputs.version }}-release.apk
+        fi
+
+    - name: Upload Debug APK
+      uses: actions/upload-artifact@v4
+      with:
+        name: VoiceGram-debug-${{ steps.version.outputs.version }}
+        path: android/app/build/outputs/apk/debug/VoiceGram-${{ steps.version.outputs.version }}-debug.apk
+
+    - name: Upload Release APK
+      if: hashFiles('android/app/build/outputs/apk/release/VoiceGram-${{ steps.version.outputs.version }}-release.apk') != ''
+      uses: actions/upload-artifact@v4
+      with:
+        name: VoiceGram-release-${{ steps.version.outputs.version }}
+        path: android/app/build/outputs/apk/release/VoiceGram-${{ steps.version.outputs.version }}-release.apk
+      continue-on-error: true
+
+    - name: Create GitHub Release
+      if: steps.version.outputs.is_pr == 'false'
+      uses: softprops/action-gh-release@v1
+      with:
+        tag_name: ${{ steps.version.outputs.version }}
+        name: VoiceGram React Native ${{ steps.version.outputs.version }}
+        body: |
+          ## VoiceGram React Native ${{ steps.version.outputs.version }}
+          
+          ### 📱 Download APKs
+          
+          **Debug APK:** [VoiceGram-${{ steps.version.outputs.version }}-debug.apk](https://github.com/${{ github.repository }}/releases/download/${{ steps.version.outputs.version }}/VoiceGram-${{ steps.version.outputs.version }}-debug.apk)
+          
+          ${{ steps.version.outputs.is_pr != 'true' && hashFiles('android/app/build/outputs/apk/release/VoiceGram-${{ steps.version.outputs.version }}-release.apk') != '' && '**Release APK:** [VoiceGram-${{ steps.version.outputs.version }}-release.apk](https://github.com/${{ github.repository }}/releases/download/${{ steps.version.outputs.version }}/VoiceGram-${{ steps.version.outputs.version }}-release.apk)' || '' }}
+          
+          ---
+          
+          ### 📋 Build Information
+          - **Build Number:** ${{ github.run_number }}
+          - **Commit:** ${{ github.sha }}
+          - **Triggered by:** ${{ github.actor }}
+          - **Workflow:** [View Run](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})
+          
+          ### 🚀 Installation
+          1. Download the APK from the links above
+          2. Enable "Install from unknown sources" on your Android device
+          3. Open the APK file to install
+          
+          _Built with ❤️ using GitHub Actions_
+        files: |
+          android/app/build/outputs/apk/debug/VoiceGram-${{ steps.version.outputs.version }}-debug.apk
+          ${{ hashFiles('android/app/build/outputs/apk/release/VoiceGram-${{ steps.version.outputs.version }}-release.apk') != '' && 'android/app/build/outputs/apk/release/VoiceGram-${{ steps.version.outputs.version }}-release.apk' || '' }}
+        draft: false
+        prerelease: true
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
